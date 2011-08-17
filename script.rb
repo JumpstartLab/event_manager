@@ -1,5 +1,8 @@
 require './jsattend'
+require 'perftools'
 
-jsa = JSAttend.new("clean_data.csv")
-jsa.time_stats
-jsa.state_stats
+PerfTools::CpuProfiler.start("/tmp/jsattend_3") do
+  jsa = JSAttend.new("event_attendees.csv")
+  jsa.print_names
+  jsa.print_phone_numbers
+end

@@ -1,3 +1,3 @@
-source 'http://rubygems.org'
+source :rubygems
 
 gem 'sunlight', '1.1.0'

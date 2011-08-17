@@ -1,7 +1,10 @@
 # Dependencies
 require 'csv'
-require 'sunlight'
 require 'date'
+require 'sunlight'
+require './string_cleaner'
+
+String.send(:include, StringCleaner)
 
 # Class Definition
 class JSAttend
@@ -13,28 +16,31 @@ class JSAttend
 
   def initialize(input_filename = DEFAULT_INPUT_FILE)
     puts "JSAttend Initialized"
-    @file_name = input_filename
     create_output_folder
+    @file = CSV.open(input_filename, :headers => true, :header_converters => :symbol)
   end
 
-  def open_input_csv_file(input_filename)
-    CSV.open(input_filename, :headers => true, :header_converters => :symbol)
+  def attendee_each    
+    @file.each do |attendee|
+      yield(attendee) if block_given?
+    end    
+    @file.rewind
   end
 
   def print_names
-    open_input_csv_file(@file_name).each do |line|
-      puts "#{line[:first_name]} #{line[:last_name]}"
+    attendee_each do |data|
+      puts "#{data[:first_name]} #{data[:last_name]}"
     end
   end
 
   def print_phone_numbers
-    open_input_csv_file(@file_name).each do |line|
+    attendee_each do |line|
       puts clean_phone_number(line[:homephone])
     end
   end
 
   def clean_phone_number(phone_number)
-    number = phone_number.gsub(/\D/, "")
+    number = phone_number.digits
 
     if number.length == 10
       number
@@ -46,7 +52,7 @@ class JSAttend
   end
 
   def print_zipcodes
-    open_input_csv_file(@file_name).each do |line|
+    attendee_each do |line|
       puts clean_zipcode(line[:zipcode])
     end
   end
@@ -75,7 +81,7 @@ class JSAttend
   end
 
   def print_representatives
-    open_input_csv_file(@file_name).each do |line|
+    attendee_each do |line|
       puts [ line[:last_name], line[:first_name],
              line[:zipcode], rep_lookup(line[:zipcode])].join(", ")
     end
@@ -106,15 +112,15 @@ class JSAttend
   def time_stats
     counters = Array.new(24){0}
 
-    open_input_csv_file(@file_name).each do |line|
+    attendee_each do |line|
       # 1: splits: .split[1].split(":")[0]
-      #hour = line[:regdate].split[1].split(":")[0].to_i
+      # hour = line[:regdate].split[1].split(":")[0].to_i
 
       # 2: regular expression
-      #hour = line[:regdate].match(/\s(\d+):/).captures.first.to_i
+      hour = line[:regdate].match(/\s(\d+):/).captures.first.to_i
 
       # 3: parsing into datetime
-      hour = DateTime.strptime(line[:regdate], "%m/%d/%y %H:%M").hour
+      #hour = DateTime.strptime(line[:regdate], "%m/%d/%y %H:%M").hour
 
       counters[hour] += 1
     end
@@ -128,7 +134,7 @@ class JSAttend
   def state_stats
     counters = {}
 
-    open_input_csv_file(@file_name).each do |line|
+    attendee_each do |line|
       if counters.has_key?(line[:state])
         counters[line[:state]] += 1
       else
