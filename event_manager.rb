@@ -7,7 +7,7 @@ require './string_cleaner'
 String.send(:include, StringCleaner)
 
 # Class Definition
-class JSAttend
+class EventManager
   INVALID_PHONE_NUMBER = "0"*10
   INVALID_ZIPCODE = "00000"
   DEFAULT_INPUT_FILE = "event_attendees.csv"

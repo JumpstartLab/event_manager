@@ -1,4 +1,4 @@
-require './jsattend'
+require './event_manager'
 require 'perftools'
 
 PerfTools::CpuProfiler.start("/tmp/jsattend_3") do
